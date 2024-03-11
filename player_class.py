@@ -4,9 +4,9 @@ import mapa
 class Player:
 
     def __init__(self, pos, dir):
-        self.position = [pos[0], pos[1]]
+        self.position = [pos[0] + 1, pos[1] + 1] #adding 1 to account for the added rows of walls on x=0 and y=0
         self.direction = dir
-        self.fov = 1.2
+        self.fov = 1.
         self.noDeformation = True
         self.speed = 1.5
         self.sensitivity = 0.05

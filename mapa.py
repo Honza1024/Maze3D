@@ -3,19 +3,22 @@ from debug import *
 
 
 def create(width, height, string):
-    y = 0
-    mapa = [[]]
-    for char in string:
-        if y == height:
-            mapa.append([])
-            y = 0
-        if char in ["w", "W"]:  #0 -> nothing
-            mapa[-1].append(1)   #1 -> wall
-        else:
-            mapa[-1].append(0)
-        y += 1
-    if not(len(mapa) == width and y == height):
-        if DEBUG: print("! map does not match given dimensions !")
+    mapa = [[1]]
+    for _ in range(height):
+        mapa[0].append(1) #add a line of walls to hide the error happenning when player (x) coordinate is negative
+    for x in range(width):
+        mapa.append([])
+        mapa[-1].append(1) #add a line of walls to hide the error happenning when player (y) coordinate is negative
+        for y in range(height):
+            if string[x + y * width] in ["w", "W"]:  #0 -> nothing
+                mapa[-1].append(1)                   #1 -> wall
+            else:
+                mapa[-1].append(0)
+    if DEBUG:
+        for column in mapa:
+            for tile in column:
+                print(tile, end = " ")
+            print()
     return mapa
 
 
@@ -46,7 +49,6 @@ def checkHorizontal(mapArray, position, direction):
         else:
             rayX += dx
             rayY += dy
-        #if DEBUG: print("ray:", rayX, rayY)
     return math.sqrt(((rayX - position[0]) ** 2) + ((rayY - position[1]) ** 2))
 
 
@@ -65,13 +67,12 @@ def checkVertical(mapArray, position, direction):
         dy = -dx * ntan
     else:
         return 100000
-    for _ in range(len(mapArray[0])):
+    for _ in range(len(mapArray)):
         if isWall(int(rayX), int(rayY), mapArray): #hit wall
             break
         else:
             rayX += dx
             rayY += dy
-        #if DEBUG: print("ray:", rayX, rayY)
     return math.sqrt(((rayX - position[0]) ** 2) + ((rayY - position[1]) ** 2))
 
 
@@ -88,11 +89,11 @@ def show(mapArray):
     for x in range(len(mapArray[0])):
         print("-", end = "")
     print()
-    for x in range(len(mapArray[0])):
+    for x in range(len(mapArray)):
         print("|", end = "")
-        for y in range(len(mapArray)):
+        for y in range(len(mapArray[0])):
             if mapArray[x][y] == 1: print("w", end = "")
-            else: print(" ", end = "")
+            else: print(".", end = "")
         print("|")
     print(" ", end = "")
     for x in range(len(mapArray[0])):
