@@ -2,29 +2,33 @@ import pygame as pg
 import pygame.gfxdraw as draw
 import math
 import mapa
-from debug import *
 
 
 class Sprite:
 
-    def __init__(self, mask, height, color, anchor = False):
+    def __init__(self, mask, height, scale, color, anchor = False):
         self.mask = mask
         self.pos = (0, 0)
         self.height = height
+        self.scale = scale
         self.color = color
         self.anchor = anchor
 
 
 def frame(surface, width, height, mapArray, player, objects):
+    surface.lock()
     depthBuf = [[1000000 for i in range(height)] for j in range(width)]
     #drawGui(surface, width, height, player, depthBuf)
+    drawMap(surface, width, height, mapArray, player, depthBuf)
     sprites = []
     for object in objects:
         sprite = object.sprite
         sprite.pos = object.pos
+        sprite.thickness = object.thickness
+        print(sprite.thickness)
         sprites.append(sprite)
     drawSprites(surface, width, height, depthBuf, player, sprites)
-    drawMap(surface, width, height, mapArray, player, depthBuf)
+    surface.unlock()
 
 
 def drawSprites(surface, width, height, depthBuf, player, sprites):
@@ -38,9 +42,10 @@ def drawSprites(surface, width, height, depthBuf, player, sprites):
         if relX < 0: direction += math.pi
         direction = ((direction - player.direction + math.pi) % (2 * math.pi)) - math.pi
         if player.noDeformation: distance *= math.cos(direction)
+        if distance < sprite.thickness or abs(direction) > 1: continue
         x = (width / 2) + ((direction / player.fov) * width)
         y = (height / 2) + ((sprite.height / distance) * (height / 2))
-        scale = 10 / distance
+        scale = (sprite.scale * width) / (distance * 400)
 
         drawSprite(surface, width, height, int(x), int(y), scale, depthBuf, sprite.mask, distance, sprite.color)
 
@@ -48,11 +53,18 @@ def drawSprites(surface, width, height, depthBuf, player, sprites):
 def drawSprite(surface, width, height, midX, bottomY, scale, depthBuf, mask, depth, color):
     scaleX = int(scale * len(mask))
     scaleY = int(scale * len(mask[0]))
+    if midX + scaleX // 2 < 0 or midX - scaleX // 2 > width:
+        return
     for x in range(scaleX):
         pixelX = midX + x - scaleX // 2
+        if pixelX >= width: break
+        elif pixelX < 0: continue
+        if depth > depthBuf[pixelX][0]: continue
         for y in range(scaleY):
             pixelY = bottomY + y - scaleY
-            if 0 <= pixelX < width and 0 <= pixelY < height and mask[int(x / scale)][int(y / scale)]:
+            if pixelY >= height: break
+            elif pixelY < 0: continue
+            if mask[min(int((x / scale) + 0.15), len(mask) - 1)][min(int((y / scale) + 0.15), len(mask) - 1)]:
                 drawPixel(surface, pixelX, pixelY, color, depthBuf, depth)
 
 
@@ -64,6 +76,7 @@ def drawGui(surface, width, height, player, depthBuf):
 
 
 def drawPixel(surface, x, y, color, depthBuf, depth):
+    if depth > depthBuf[x][y]: return
     draw.pixel(surface, x, y, color)
     depthBuf[x][y] = depth
 
@@ -111,6 +124,7 @@ def drawMap(surface, width, height, mapArray, player, depthBuf):
         distance, vertical = mapa.getDistance(mapArray, player.position, direction)
         if player.noDeformation: #make walls look straight
             distance *= math.cos(((x / width) - 0.5) * player.fov)
+        depthBuf[x][0] = distance + 0.00001
         wallTop = (height / 2) - ((0.5 * height) / distance)
         wallBottom = height / 2 + 0.5 * height / distance
         for y in range(height):

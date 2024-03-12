@@ -1,5 +1,4 @@
 import math
-from debug import *
 
 
 def create(width, height, string):
@@ -14,11 +13,6 @@ def create(width, height, string):
                 mapa[-1].append(1)                   #1 -> wall
             else:
                 mapa[-1].append(0)
-    if DEBUG:
-        for column in mapa:
-            for tile in column:
-                print(tile, end = " ")
-            print()
     return mapa
 
 
