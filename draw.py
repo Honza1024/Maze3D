@@ -29,55 +29,30 @@ def frame(surface, width, height, mapArray, player, objects):
 
 def drawSprites(surface, width, height, depthBuf, player, sprites):
     for sprite in sprites:
-        mask = sprite.mask
-        color = sprite.color
-        pPosX, pPosY = player.position
-        relX, relY = sprite.pos[0] - pPosX, sprite.pos[1] - pPosY
-        if relX == 0:
-            if relY > 0:
-                direction = math.pi / 2
-            elif relY == 0:
-                return #if the sprite is on players position, just ignore it
-            else:
-                direction = 3 * math.pi / 2
-        elif relY > 0:
-            direction = math.atan(relY / relX)
-            if relX < 0:
-                direction += math.pi
-        else:
-            direction = math.atan(relY / relX)
-            if relX < 0:
-                direction += math.pi
-        direction = (direction - player.direction) % (2 * math.pi)
-        if direction > math.pi:
-            direction -= 2 * math.pi
-        if abs(direction) > 1.5:
+        relX = sprite.pos[0] - player.position[0]
+        relY = sprite.pos[1] - player.position[1]
+        if relX == 0 or relY == 0:
             continue
-        x = width / 2 + (direction / player.fov) * width
-        distance = math.sqrt((pPosX - sprite.pos[0]) ** 2 + (pPosY - sprite.pos[1]) ** 2)
-        if distance < 0.1: continue
-        distance = distance * math.cos(direction)
-        depth = distance
-        scale = 5 / distance
-        y = (height / 2) + sprite.height * (1 / distance) * (height / 2)
-        print(direction, relX, relY)
+        distance = math.sqrt(relX ** 2 + relY ** 2)
+        direction = math.atan(relY / relX)
+        if relX < 0: direction += math.pi
+        direction = ((direction - player.direction + math.pi) % (2 * math.pi)) - math.pi
+        if player.noDeformation: distance *= math.cos(direction)
+        x = (width / 2) + ((direction / player.fov) * width)
+        y = (height / 2) + ((sprite.height / distance) * (height / 2))
+        scale = 10 / distance
 
-        drawSprite(surface, width, height, int(x), int(y), scale, depthBuf, mask, depth, color)
+        drawSprite(surface, width, height, int(x), int(y), scale, depthBuf, sprite.mask, distance, sprite.color)
 
 
 def drawSprite(surface, width, height, midX, bottomY, scale, depthBuf, mask, depth, color):
-    sizeX = int(len(mask) * scale)
-    sizeY = int(len(mask[0]) * scale)
-    cornerX = midX - sizeX // 2
-    cornerY = bottomY - sizeY
-    for x in range(sizeX):
-        pixelX = cornerX + x
-        for y in range(sizeY):
-            pixelY = cornerY + y
-            if not (0 <= pixelX < width and 0 <= pixelY < height):
-                continue
-            isColored = mask[int(x / (scale - 0.001))][int(y / (scale + 0.001))]
-            if True and depth < depthBuf[pixelX][pixelY]:
+    scaleX = int(scale * len(mask))
+    scaleY = int(scale * len(mask[0]))
+    for x in range(scaleX):
+        pixelX = midX + x - scaleX // 2
+        for y in range(scaleY):
+            pixelY = bottomY + y - scaleY
+            if 0 <= pixelX < width and 0 <= pixelY < height and mask[int(x / scale)][int(y / scale)]:
                 drawPixel(surface, pixelX, pixelY, color, depthBuf, depth)
 
 

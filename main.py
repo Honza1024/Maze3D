@@ -21,7 +21,7 @@ pg.event.set_grab(True)
 
 mapArray = mapa.create(6, 6, ("......"
                               "......"
-                              "......"
+                              "..w..."
                               "......"
                               "......"
                               "......"))
@@ -37,13 +37,13 @@ sprite = draw.Sprite([[1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
                             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1]],
-                     0.2, (0, 255, 100))
+                     1, (0, 255, 100))
 objects = [object_class.Object("smth", (2, 2), sprite)]
-for i in range(6):
+"""for i in range(6):
     for j in range(6):
-        objects.append(object_class.Object("smth", (i, j), sprite))
+        objects.append(object_class.Object("smth", (i, j), sprite))"""
 
-player = Player((2, 2), 3.8)
+player = Player((0, 1.999), 0)
 
 lastFrame = 0
 
