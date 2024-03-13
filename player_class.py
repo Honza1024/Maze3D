@@ -1,6 +1,7 @@
 import pygame as pg
 import math
 import mapa
+from settings import *
 
 
 class Player:
@@ -75,3 +76,24 @@ class Player:
             self.position[0] += self.speed * dTime * math.sin(self.direction)
 
         self.collide(mapArray)
+
+
+    def shoot(self, objects, mapArray):
+        for object in objects:
+            if object.maxHealth == 0:
+                continue
+            relX = object.pos[0] - self.position[0]
+            relY = object.pos[1] - self.position[1]
+            if relX == 0 or relY == 0:
+                continue
+            distance = math.sqrt(relX ** 2 + relY ** 2)
+            direction = math.atan(relY / relX)
+            if relX < 0: direction += math.pi
+            direction = ((direction - self.direction + math.pi) % (2 * math.pi)) - math.pi
+            direction *= WINDOW_SIZE
+            if self.noDeformation: distance *= math.cos(direction)
+            size = len(object.sprite.mask[0]) * object.sprite.scale / distance
+            if direction - (size / 2) < 0 < direction + (size / 2):  # got hit:
+                object.health -= 10
+            if object.health <= 0:
+                pass#del object
