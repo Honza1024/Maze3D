@@ -2,7 +2,6 @@ import pygame as pg
 import pygame.gfxdraw as draw
 import math
 import mapa
-from settings import *
 
 
 class Sprite:
@@ -19,22 +18,17 @@ class Sprite:
 def frame(surface, width, height, mapArray, player, objects):
     surface.lock()
     depthBuf = [[1000000 for i in range(height)] for j in range(width)]
-    drawGui(surface, width, height, player, depthBuf)
+    #drawGui(surface, width, height, player, depthBuf)
     drawMap(surface, width, height, mapArray, player, depthBuf)
     sprites = []
     for object in objects:
         sprite = object.sprite
         sprite.pos = object.pos
         sprite.thickness = object.thickness
-        sprite.health = object.health / object.maxHealth if object.maxHealth else 1
+        print(sprite.thickness)
         sprites.append(sprite)
     drawSprites(surface, width, height, depthBuf, player, sprites)
     surface.unlock()
-
-
-def drawGui(surface, width, height, player, depthBuf):  # draw here anything directly on screen
-    drawLine(surface, (width // 2, 0), (width // 2, height - 1), 1, (255, 255, 255), depthBuf, -1)
-    #drawRect(surface, -10, -20, 1000, 2000, (200, 200, 200), depthBuf, 0)
 
 
 def drawSprites(surface, width, height, depthBuf, player, sprites):
@@ -51,14 +45,12 @@ def drawSprites(surface, width, height, depthBuf, player, sprites):
         if distance < sprite.thickness or abs(direction) > 1: continue
         x = (width / 2) + ((direction / player.fov) * width)
         y = (height / 2) + ((sprite.height / distance) * (height / 2))
-        scale = (sprite.scale * WINDOW_SIZE) / (distance * 400)
-        health = sprite.health
+        scale = (sprite.scale * width) / (distance * 400)
 
-        drawSprite(surface, width, height, int(x), int(y), scale, depthBuf, sprite.mask, distance, sprite.color, health)
+        drawSprite(surface, width, height, int(x), int(y), scale, depthBuf, sprite.mask, distance, sprite.color)
 
 
-def drawSprite(surface, width, height, midX, bottomY, scale, depthBuf, mask, depth, color, health):
-    darker = (color[0]*0.9, color[1]*0.9, color[2]*0.9)
+def drawSprite(surface, width, height, midX, bottomY, scale, depthBuf, mask, depth, color):
     scaleX = int(scale * len(mask))
     scaleY = int(scale * len(mask[0]))
     if midX + scaleX // 2 < 0 or midX - scaleX // 2 > width:
@@ -73,10 +65,14 @@ def drawSprite(surface, width, height, midX, bottomY, scale, depthBuf, mask, dep
             if pixelY >= height: break
             elif pixelY < 0: continue
             if mask[min(int((x / scale) + 0.15), len(mask) - 1)][min(int((y / scale) + 0.15), len(mask) - 1)]:
-                if y / scaleY > health:
-                    drawPixel(surface, pixelX, pixelY, color, depthBuf, depth)
-                else:
-                    drawPixel(surface, pixelX, pixelY, darker, depthBuf, depth)
+                drawPixel(surface, pixelX, pixelY, color, depthBuf, depth)
+
+
+def drawGui(surface, width, height, player, depthBuf):
+    for x in range(10):
+        for y in range(10):
+            drawPixel(surface, x, y, (255, 255, 255), depthBuf, -1)
+    drawLine(surface, (10, 10), (300, 200), 1, (255, 255, 255), depthBuf, -1)
 
 
 def drawPixel(surface, x, y, color, depthBuf, depth):
@@ -120,24 +116,6 @@ def drawLine(surface, start, end, thickness, color, depthBuf, depth):
             d += ax
 
     drawPixel(surface, x2, y2, color, depthBuf, depth)
-
-
-def drawRect(surface, x1, y1, width, height, color, depthBuf, depth, depthCheck=False):
-    if x1 < 0:
-        width += x1
-        x1 = 0
-    if y1 < 0:
-        height += y1
-        y1 = 0
-    width = min(width, WINDOW_SIZE)
-    height = min(height, int(WINDOW_SIZE / 4 * 3))
-    for x in range(x1, x1 + width):
-        for y in range(y1, y1 + height):
-            depthBuf[x][y] = depth
-            if depthCheck:
-                drawPixel(surface, x, y, color, depthBuf, depth)
-    if not depthCheck:
-        draw.box(surface, pg.Rect(x1, y1, width, height), color)
 
 
 def drawMap(surface, width, height, mapArray, player, depthBuf):

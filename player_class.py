@@ -1,7 +1,6 @@
 import pygame as pg
 import math
 import mapa
-from settings import *
 
 
 class Player:
@@ -12,7 +11,7 @@ class Player:
         self.fov = 1.
         self.noDeformation = True
         self.speed = 1.5
-        self.sensitivity = MOUSE_SENSITIVITY
+        self.sensitivity = 0.05
         self.thickness = 0.06
 
 
@@ -76,26 +75,3 @@ class Player:
             self.position[0] += self.speed * dTime * math.sin(self.direction)
 
         self.collide(mapArray)
-
-    def shoot(self, objects, mapArray):
-        for object in objects:
-            if object.maxHealth == 0:
-                continue
-            relX = object.pos[0] - self.position[0]
-            relY = object.pos[1] - self.position[1]
-            if relX == 0 or relY == 0:
-                continue
-            distance = math.sqrt(relX * relX + relY * relY)
-            direction = math.atan(relY / relX)
-            if relX < 0: direction += math.pi
-            direction = ((direction - self.direction + math.pi) % (2 * math.pi)) - math.pi
-            print(int(direction * WINDOW_SIZE), direction, distance)
-            if self.noDeformation: distance *= math.cos(direction)
-            direction *= WINDOW_SIZE
-            size = (object.sprite.scale * WINDOW_SIZE) / (distance * 400) * len(object.sprite.mask)
-            print(int(size), int(direction - size // 2), int(direction + size // 2))
-            if direction - (size / 2) < 0 < direction + (size / 2):  # got hit:
-                print("hit")
-                object.health -= 10  # TODO: put current damage here!
-            if object.health <= 0:
-                objects.pop(objects.index(object))

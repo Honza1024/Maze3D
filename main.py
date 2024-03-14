@@ -27,27 +27,22 @@ mapArray = mapa.create(6, 6, ("......"
                               "......"
                               "......"))
 
-objects = [object_class.getObject("testing", [1, 1])]
+objects = [object_class.getObject("alkdflskfd", [2, 2])]
 
 player = Player((0, 1.999), 0)
 
-lastFrame = time.time()
+lastFrame = 0
 
 state = "running"
 
 while state:
-    dTime = min(time.time() - lastFrame, 0.2)
-    print((int(1 / dTime * 1000) / 1000) if dTime > 0 else "infinity")  # uncomment to see fps in console
-    lastFrame = time.time()
-    keys = key.get_pressed()
-    mouseMovement = mouse.get_rel()[0] * 400 / width
-
     if state == "running":
+        dTime = time.time() - lastFrame
+        lastFrame = time.time()
+        keys = key.get_pressed()
+        mouseMovement = mouse.get_rel()[0] * 400 / width
 
         player.move(dTime, mouseMovement, keys, mapArray)
-
-        for object in objects:
-            object.move(dTime, player, mapArray)
 
         draw.frame(surface, width, height, mapArray, player, objects)
 
@@ -59,8 +54,6 @@ while state:
         if event.type == pg.QUIT:
             state = False
             pg.quit()
-        elif event.type == pg.MOUSEBUTTONDOWN:
-            player.shoot(objects, mapArray)
         elif event.type == pg.KEYDOWN:
             if event.key == pg.K_ESCAPE:
                 state = 0
