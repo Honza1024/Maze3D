@@ -1,4 +1,4 @@
-import pygame as pg
+import time
 import pygame.gfxdraw as draw
 import math
 import mapa
@@ -20,14 +20,14 @@ def frame(surface, width, height, mapArray, player, objects):
     depthBuf = [[1000000 for i in range(height)] for j in range(width)]
     #drawGui(surface, width, height, player, depthBuf)
     drawMap(surface, width, height, mapArray, player, depthBuf)
-    sprites = []
+    """sprites = []
     for object in objects:
         sprite = object.sprite
         sprite.pos = object.pos
         sprite.thickness = object.thickness
-        print(sprite.thickness)
+        sprite.health = object.health / object.maxHealth
         sprites.append(sprite)
-    drawSprites(surface, width, height, depthBuf, player, sprites)
+    drawSprites(surface, width, height, depthBuf, player, sprites)"""
     surface.unlock()
 
 
@@ -46,11 +46,13 @@ def drawSprites(surface, width, height, depthBuf, player, sprites):
         x = (width / 2) + ((direction / player.fov) * width)
         y = (height / 2) + ((sprite.height / distance) * (height / 2))
         scale = (sprite.scale * width) / (distance * 400)
+        health = sprite.health
 
-        drawSprite(surface, width, height, int(x), int(y), scale, depthBuf, sprite.mask, distance, sprite.color)
+        drawSprite(surface, width, height, int(x), int(y), scale, depthBuf, sprite.mask, distance, sprite.color, health)
 
 
-def drawSprite(surface, width, height, midX, bottomY, scale, depthBuf, mask, depth, color):
+def drawSprite(surface, width, height, midX, bottomY, scale, depthBuf, mask, depth, color, health):
+    darker = (color[0]*0.9, color[1]*0.9, color[2]*0.9)
     scaleX = int(scale * len(mask))
     scaleY = int(scale * len(mask[0]))
     if midX + scaleX // 2 < 0 or midX - scaleX // 2 > width:
@@ -66,6 +68,10 @@ def drawSprite(surface, width, height, midX, bottomY, scale, depthBuf, mask, dep
             elif pixelY < 0: continue
             if mask[min(int((x / scale) + 0.15), len(mask) - 1)][min(int((y / scale) + 0.15), len(mask) - 1)]:
                 drawPixel(surface, pixelX, pixelY, color, depthBuf, depth)
+                """if y / scaleY > health:
+                    drawPixel(surface, pixelX, pixelY, color, depthBuf, depth)
+                else:
+                    drawPixel(surface, pixelX, pixelY, darker, depthBuf, depth)"""
 
 
 def drawGui(surface, width, height, player, depthBuf):
@@ -119,7 +125,9 @@ def drawLine(surface, start, end, thickness, color, depthBuf, depth):
 
 
 def drawMap(surface, width, height, mapArray, player, depthBuf):
+    t = time.time()
     for x in range(width):
+        t = time.time()
         direction = (player.direction + ((x / width) - 0.5) * player.fov) % (2 * math.pi)
         distance, vertical = mapa.getDistance(mapArray, player.position, direction)
         if player.noDeformation: #make walls look straight
