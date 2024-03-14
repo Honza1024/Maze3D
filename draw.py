@@ -144,3 +144,4 @@ def drawMap(surface, width, height, mapArray, player, depthBuf):
                 else:
                     color = (128, 30, 30) #floor
                 draw.pixel(surface, x, y, color)
+

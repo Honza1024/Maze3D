@@ -92,3 +92,4 @@ def show(mapArray):
     print(" ", end = "")
     for x in range(len(mapArray[0])):
         print("-", end = "")
+
