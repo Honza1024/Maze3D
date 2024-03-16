@@ -18,7 +18,7 @@ class Object:
 
 
     def move(self, dTime, player, mapArray):
-        if self.typ in ["giant"]:  # chase player
+        if self.typ in ["giant", "spider"]:  # chase player
             relX = self.pos[0] - player.position[0]
             relY = self.pos[1] - player.position[1]
             dist = math.sqrt(relX ** 2 + relY ** 2)
@@ -26,7 +26,7 @@ class Object:
             relY /= dist
             self.pos[0] -= relX * self.speed * dTime
             self.pos[1] -= relY * self.speed * dTime
-        if self.typ in ["giant"]:  # collision
+        if self.typ in ["giant", "spider", "ammo", "weapon"]:  # collision
             self.collide(mapArray)
 
     def collide(self, mapArray):
@@ -72,7 +72,18 @@ class Object:
                 self.pos[1] -= self.thickness - (1 - (self.pos[1] % 1))
 
 
-def getObject(typ, pos, weapon="default"):
+    def interact(self, player):
+        if self.typ == "ammo":
+            player.activeWeapon.getWeapon(self.weapon).ownedAmmo += self.ammo
+            return True
+        elif self.typ == "weapon":
+            player.ownedWeapons.append(player.activeWeapon.getWeapon(self.weapon, player.otherWeapons))
+            player.switchWeapons()
+            return True
+        return False
+
+
+def getObject(typ, pos, weapon="default", ammo=0, id=False):
     if typ in list(objects):
         o = copy.deepcopy(objects[typ])
     else:
@@ -80,7 +91,20 @@ def getObject(typ, pos, weapon="default"):
     o.pos = [pos[0] + 1, pos[1] + 1]
     if typ in ["ammo", "weapon"]:
         o.weapon = weapon
+    if typ == "ammo":
+        o.ammo = ammo
+    o.id = id
     return o
+
+
+def getObjectByID(id, objects, getIndex=False):
+    for object in objects:
+        if object.id == id:
+            if getIndex:
+                return object, objects.index(object)
+            else:
+                return object
+    return False
 
 
 def getMask(xSize, string):
@@ -144,7 +168,27 @@ objects["spider"] = Object("spider", draw.Sprite(getMask(20, """
 00................00
 00................00
 00................00
-00................00"""), 1, 8, (20, 20, 20)), 30, 2)
+00................00"""), 1, 8, (20, 20, 20)), 30, 1.5)
+
+objects["ammo"] = Object("ammo", draw.Sprite(getMask(20, """
+..0000000000000000..
+.000000000000000000.
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000"""), 1, 5, (30, 100, 20)), 0, 0)
+
+objects["weapon"] = Object("weapon", draw.Sprite(getMask(20, """
+.000000000000000000.
+00000000000000000000
+00000000000000000000
+00000000000000000000
+00000000000000000000"""), 1, 10, (80, 80, 80)), 0, 0)
 
 objects["target"] = Object("target", draw.Sprite(getMask(10, """
 ....00....
@@ -168,7 +212,7 @@ objects["test"] = Object("test", draw.Sprite(getMask(10, """
 0000000000
 0000000000
 0000000000
-0000000000"""), 1, 20, (255, 0, 0)), 300)
+0000000000"""), 1, 20, (255, 0, 0)), 100)
 
 objects["smth"] = Object("smth", draw.Sprite(getMask(10, """
 0000000000

@@ -28,7 +28,8 @@ mapArray = mapa.create(6, 6, ("......"
                               "......"
                               "......"))
 
-player, objects = gameplay.start()
+game = gameplay.Gameplay()
+player, objects = game.player, game.objects
 
 lastFrame = 0
 
@@ -45,6 +46,8 @@ while state:
 
         player.move(dTime, mouseMovement, keys, mapArray)
 
+        game.mainLoop(dTime, mapArray)
+
         for object in objects:
             object.move(dTime, player, mapArray)
 
@@ -55,8 +58,11 @@ while state:
         if event.type == pg.QUIT:
             state = False
             pg.quit()
-        elif event.type == pg.MOUSEBUTTONUP:
-            player.shoot(objects, mapArray, player, dTime)
+        elif event.type == pg.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                player.shoot(objects, mapArray, player, dTime)
+            elif event.button == 3:
+                player.switchWeapons()
         elif event.type == pg.KEYDOWN:
             if event.key == pg.K_ESCAPE:
                 state = 0
@@ -65,8 +71,16 @@ while state:
                 pg.quit()
                 state = 0
                 break
+            elif event.key == pg.K_e:  # interaction with objects
+                toDestroy = []
+                for object in objects:
+                    if 1 > math.sqrt((object.pos[0] - player.position[0]) ** 2 + (object.pos[1] - player.position[1]) ** 2):
+                        if object.interact(player):
+                            toDestroy.append(objects.index(object))
+                toDestroy.sort(reverse=True)
+                for index in toDestroy: objects.pop(index)
             elif event.key == pg.K_p:
-                if state == "running": #pause the game
+                if state == "running":  # pause the game
                     state = "paused"
                     mouse.set_visible(True)
                     pg.event.set_grab(False)

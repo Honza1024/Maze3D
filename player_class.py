@@ -1,5 +1,6 @@
 import pygame as pg
 import math
+import copy
 import mapa
 import weapons
 from settings import *
@@ -15,11 +16,11 @@ class Player:
         self.speed = speed
         self.sensitivity = MOUSE_SENSITIVITY
         self.thickness = thickness
-        self.otherWeapons = weapons.Weapon.weapons
+        self.otherWeapons = copy.copy(weapons.Weapon.weapons)
         self.ownedWeapons = []
         for name in ownedWeapons:
-            self.ownedWeapons.append(self.otherWeapons[0].getWeapon(name, self.ownedWeapons))
-        self.activeWeapon = self.otherWeapons[0]
+            self.ownedWeapons.append(self.otherWeapons[0].getWeapon(name, self.otherWeapons))
+        self.activeWeapon = self.ownedWeapons[0]
         self.health = health
 
 
@@ -65,10 +66,6 @@ class Player:
     def move(self, dTime, mouseMovement, keys, mapArray):
         self.direction = (self.direction + dTime * mouseMovement * self.sensitivity) % (2 * math.pi)
 
-        if keys[pg.K_e]:
-            self.direction = (self.direction + dTime * 1) % (2 * math.pi)
-        if keys[pg.K_q]:
-            self.direction = (self.direction + dTime * -1) % (2 * math.pi)
         if keys[pg.K_w]:
             self.position[0] += self.speed * dTime * math.cos(self.direction)
             self.position[1] += self.speed * dTime * math.sin(self.direction)
@@ -85,6 +82,7 @@ class Player:
         self.collide(mapArray)
 
     def shoot(self, objects, mapArray, player, dTime):
+        if not player.activeWeapon.shoot(player.activeWeapon): return
         for object in objects:
             if object.maxHealth == 0:
                 continue
@@ -109,3 +107,8 @@ class Player:
                 player.activeWeapon.damage(dTime, direct, distance, player.activeWeapon)
             if object.health <= 0:
                 objects.pop(objects.index(object))
+
+
+    def switchWeapons(self):
+        self.ownedWeapons.append(self.ownedWeapons.pop(0))
+        self.activeWeapon = self.ownedWeapons[0]
