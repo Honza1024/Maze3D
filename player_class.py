@@ -1,18 +1,26 @@
 import pygame as pg
 import math
 import mapa
+import weapons
+from settings import *
 
 
 class Player:
 
-    def __init__(self, pos, dir):
-        self.position = [pos[0] + 1, pos[1] + 1] #adding 1 to account for the added rows of walls on x=0 and y=0
+    def __init__(self, pos, dir, speed, thickness, health, ownedWeapons):
+        self.position = [pos[0] + 1, pos[1] + 1]  # adding 1 to account for the added rows of walls on x=0 and y=0
         self.direction = dir
-        self.fov = 1.
-        self.noDeformation = True
-        self.speed = 1.5
-        self.sensitivity = 0.05
-        self.thickness = 0.06
+        self.fov = FOV
+        self.noDeformation = NO_DEFORMATION
+        self.speed = speed
+        self.sensitivity = MOUSE_SENSITIVITY
+        self.thickness = thickness
+        self.otherWeapons = weapons.Weapon.weapons
+        self.ownedWeapons = []
+        for name in ownedWeapons:
+            self.ownedWeapons.append(self.otherWeapons[0].getWeapon(name, self.ownedWeapons))
+        self.activeWeapon = self.otherWeapons[0]
+        self.health = health
 
 
     def collide(self, mapArray):
@@ -75,3 +83,29 @@ class Player:
             self.position[0] += self.speed * dTime * math.sin(self.direction)
 
         self.collide(mapArray)
+
+    def shoot(self, objects, mapArray, player, dTime):
+        for object in objects:
+            if object.maxHealth == 0:
+                continue
+            relX = object.pos[0] - self.position[0]
+            relY = object.pos[1] - self.position[1]
+            if relX == 0 and relY == 0:
+                continue
+            distance = math.sqrt(relX ** 2 + relY ** 2)
+            direction = math.atan(relY / relX) if relX else math.pi / 2
+            if relX < 0: direction += math.pi
+            direction = ((direction - self.direction + math.pi) % (2 * math.pi)) - math.pi
+            if mapa.getDistance(mapArray, player.position, player.direction)[0] < distance:
+                player.activeWeapon.damage(dTime, 0, distance, player.activeWeapon)
+                continue
+            if self.noDeformation: distance *= math.cos(direction)
+            direction *= WINDOW_SIZE
+            size = len(object.sprite.mask[0]) * object.sprite.scale / distance
+            direct = 1 - abs(direction / (size / 2))
+            if direction - (size / 2) < 0 < direction + (size / 2):  # got hit:
+                object.health -= player.activeWeapon.damage(dTime, direct, distance, player.activeWeapon)
+            else:
+                player.activeWeapon.damage(dTime, direct, distance, player.activeWeapon)
+            if object.health <= 0:
+                objects.pop(objects.index(object))
