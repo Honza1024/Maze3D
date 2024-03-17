@@ -7,27 +7,33 @@ from settings import *
 
 class Object:
 
-    def __init__(self, typ, sprite, health=0, speed=0.):
+    def __init__(self, typ, sprite, health=0, speed=0., damage=0, retreat=0):
         self.typ = typ
         self.pos = [0, 0]
         self.sprite = sprite
         self.health = health
         self.maxHealth = health
         self.speed = speed
+        self.damage = damage
+        self.retreat = retreat
         self.thickness = len(sprite.mask) * sprite.scale / WINDOW_SIZE / 2
 
 
     def move(self, dTime, player, mapArray):
-        if self.typ in ["giant", "spider"]:  # chase player
-            relX = self.pos[0] - player.position[0]
-            relY = self.pos[1] - player.position[1]
-            dist = math.sqrt(relX ** 2 + relY ** 2)
-            relX /= dist
-            relY /= dist
+        relX = self.pos[0] - player.position[0]
+        relY = self.pos[1] - player.position[1]
+        dist = math.sqrt(relX ** 2 + relY ** 2)
+        relX /= dist
+        relY /= dist
+        if self.typ in ["giant", "spider"]:  # go towards player
             self.pos[0] -= relX * self.speed * dTime
             self.pos[1] -= relY * self.speed * dTime
-        if self.typ in ["giant", "spider", "ammo", "weapon"]:  # collision
+        if self.typ in ["giant", "spider", "ammo", "weapon", "test"]:  # collision
             self.collide(mapArray)
+        if dist < player.thickness + self.thickness:  # attack
+            player.health -= self.damage
+            self.pos[0] += relX * self.speed * self.retreat
+            self.pos[1] += relY * self.speed * self.retreat
 
     def collide(self, mapArray):
         # if inside a wall, get pushed away
@@ -156,7 +162,7 @@ objects["giant"] = Object("giant", draw.Sprite(getMask(22, """
 ......0000000000......
 ......0000000000......
 ......0000000000......
-......0000000000......"""), 1, 10, (255, 180, 180)), 1000, 0.4)
+......0000000000......"""), 1, 10, (255, 180, 180)), 1000, 0.4, 45, 0.3)
 
 objects["spider"] = Object("spider", draw.Sprite(getMask(20, """
 ......00000000......
@@ -168,7 +174,7 @@ objects["spider"] = Object("spider", draw.Sprite(getMask(20, """
 00................00
 00................00
 00................00
-00................00"""), 1, 8, (20, 20, 20)), 30, 1.5)
+00................00"""), 1, 8, (20, 20, 20)), 30, 1.5, 5, 1.)
 
 objects["ammo"] = Object("ammo", draw.Sprite(getMask(20, """
 ..0000000000000000..

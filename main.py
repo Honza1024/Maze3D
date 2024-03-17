@@ -43,7 +43,7 @@ state = "running"
 while state:
     if state == "running":
         dTime = time.time() - lastFrame
-        if dTime != 0: print(1 / dTime)  # uncomment to print fps into console
+        #if dTime != 0: print(1 / dTime)  # uncomment to print fps into console
         lastFrame = time.time()
         dTime = min(dTime, 0.1)
         keys = key.get_pressed()
@@ -52,13 +52,16 @@ while state:
         player.move(dTime, mouseMovement, keys, mapArray)
         player.activeWeapon.loop(player.activeWeapon, dTime)
 
-        game.mainLoop(dTime, mapArray)
+        state = game.mainLoop(dTime, mapArray, state)
 
         for object in objects:
             object.move(dTime, player, mapArray)
 
     elif state == "paused":
         pass
+
+    elif state == "defeat":
+        state = 0
 
     for event in pg.event.get():
         if event.type == pg.QUIT:

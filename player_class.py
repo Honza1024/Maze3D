@@ -82,7 +82,10 @@ class Player:
         self.collide(mapArray)
 
     def shoot(self, objects, mapArray, player, dTime):
-        if not player.activeWeapon.shoot(player.activeWeapon): return
+        # shoot
+        shotValue = player.activeWeapon.shoot(player.activeWeapon)
+        if not shotValue: return
+        # loop through enemies and check for hits
         for object in objects:
             if object.maxHealth == 0:
                 continue
@@ -103,9 +106,8 @@ class Player:
             direct = 1 - abs(direction / (size / 2))
             if direction - (size / 2) < 0 < direction + (size / 2):  # got hit:
                 object.health -= player.activeWeapon.damage(dTime, direct, distance, player.activeWeapon)
-            else:
-                player.activeWeapon.damage(dTime, direct, distance, player.activeWeapon)
-            if object.health <= 0:
+                player.activeWeapon.knockback(object, player)
+            if object.health <= 0:  # dies
                 objects.pop(objects.index(object))
 
 
