@@ -16,7 +16,7 @@ class Sprite:
         self.anchor = anchor
 
 
-def frame(surface, width, height, mapArray, player, objects):
+def frame(surface, width, height, mapArray, player, objects, gameFont):
     surface.lock()
     depthBuf = [[1000000 for i in range(height)] for j in range(width)]
     drawGui(surface, width, height, player, depthBuf)
@@ -30,6 +30,7 @@ def frame(surface, width, height, mapArray, player, objects):
         sprites.append(sprite)
     drawSprites(surface, width, height, depthBuf, player, sprites)
     surface.unlock()
+    drawText(surface, player, width, height, gameFont)
 
 
 def drawSprites(surface, width, height, depthBuf, player, sprites):
@@ -83,7 +84,17 @@ def drawGui(surface, width, height, player, depthBuf):
     drawRect(surface, 10 * scale, 10 * scale, 1 * player.health * scale, 15 * scale, (220, 0, 0), depthBuf, 0)
     if player.health < 100:
         drawRect(surface, (10 + 1 * player.health) * scale, 10 * scale, (100 - 1 * player.health) * scale, 15 * scale, (150, 0, 0), depthBuf, 0)
-    #drawLine(surface, (10, 10), (300, 200), 1, (255, 255, 255), depthBuf, -1)
+    # if needed, draw weapon state bar
+    if player.activeWeapon.state:
+        drawRect(surface, width * 0.2, height * 0.9, (60 * scale) - (player.activeWeapon.state * 60 * scale), 10 * scale, (15, 50, 170), depthBuf, 0)
+
+
+def drawText(surface, player, width, height, gameFont):
+    # draw gun information
+    rendered = gameFont.render(str(player.activeWeapon.ammo)+"/"+str(player.activeWeapon.ownedAmmo), False, (255, 255, 255))
+    surface.blit(rendered, (width * 0.7, height * 0.85))
+    rendered = gameFont.render(str(player.activeWeapon.name), False, (255, 255, 255))
+    surface.blit(rendered, (width * 0.7, height * 0.91))
 
 
 def drawPixel(surface, x, y, color, depthBuf, depth):

@@ -7,14 +7,16 @@ class Weapon:
 
     weapons = []
     lastShot = 0
-    def __init__(self, name, draw, shoot, damage, ammo, maxAmmo):
+    def __init__(self, name, draw, shoot, loop, damage, ammo, maxAmmo):
         self.name = name
         self.drawWeaponPrivate = draw
         self.shoot = shoot
+        self.loop = loop
         self.damage = damage
         self.ammo = min(ammo, maxAmmo)
         self.maxAmmo = maxAmmo
         self.ownedAmmo = max(0, ammo - maxAmmo)
+        self.state = 0
         self.weapons.append(self)
 
 
@@ -49,23 +51,31 @@ def drawDefault(surface, width, height, depthBuf, midX, midY, lastShot):
 
 def shootDefault(weapon):
     if weapon.ammo == "reloading":
-        if time.time() - weapon.lastShot > 1.5:
-            weapon.ammo = min(weapon.maxAmmo, weapon.ownedAmmo)
-            weapon.ownedAmmo = max(0, weapon.ownedAmmo - weapon.maxAmmo)
-        else:
-            return False
+        return False
     if time.time() - weapon.lastShot > 0.3 and weapon.ammo > 0:
         weapon.ammo -= 1
         weapon.lastShot = time.time()
         return True
     if weapon.ammo <= 0:
         weapon.ammo = "reloading"
+        weapon.lastShot = time.time()
     return False
+
+def loopDefault(weapon, dTime):
+    if weapon.ammo == "reloading" and time.time() - weapon.lastShot > 1:
+        weapon.ammo = min(weapon.maxAmmo, weapon.ownedAmmo)
+        weapon.ownedAmmo = max(0, weapon.ownedAmmo - weapon.maxAmmo)
+    if weapon.ammo == "reloading":
+        weapon.state = (time.time() - weapon.lastShot) / 1
+    elif time.time() - weapon.lastShot < 0.3:
+        weapon.state = time.time() - weapon.lastShot / 0.3
+    else:
+        weapon.state = 0
 
 def damageDefault(distance, direct, dTime, weapon):
     return 10
 
-Weapon("default", drawDefault, shootDefault, damageDefault, 0, 6)
+Weapon("default", drawDefault, shootDefault, loopDefault, damageDefault, 0, 6)
 
 
 # rifle
@@ -81,20 +91,26 @@ def drawRifle(surface, width, height, depthBuf, midX, midY, lastShot):
 
 def shootRifle(weapon):
     if weapon.ammo == "reloading":
-        if time.time() - weapon.lastShot > 2:
-            weapon.ammo = min(weapon.maxAmmo, weapon.ownedAmmo)
-            weapon.ownedAmmo = max(0, weapon.ownedAmmo - weapon.maxAmmo)
-        else:
-            return False
+        return False
     if time.time() - weapon.lastShot > 0 and weapon.ammo > 0:
         weapon.ammo -= 1
         weapon.lastShot = time.time()
         return True
     if weapon.ammo <= 0:
         weapon.ammo = "reloading"
+        weapon.lastShot = time.time()
     return False
+
+def loopRifle(weapon, dTime):
+    if weapon.ammo == "reloading" and time.time() - weapon.lastShot > 1.5:
+            weapon.ammo = min(weapon.maxAmmo, weapon.ownedAmmo)
+            weapon.ownedAmmo = max(0, weapon.ownedAmmo - weapon.maxAmmo)
+    if weapon.ammo == "reloading":
+        weapon.state = (time.time() - weapon.lastShot) / 1.5
+    else:
+        weapon.state = 0
 
 def damageRifle(distance, direct, dTime, weapon):
     return 80
 
-Weapon("rifle", drawRifle, shootRifle, damageRifle, 0, 2)
+Weapon("rifle", drawRifle, shootRifle, loopRifle, damageRifle, 0, 2)
