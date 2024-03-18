@@ -92,15 +92,18 @@ def drawGui(surface, width, height, player, depthBuf):
 def drawText(surface, player, width, height, gameFont):
     # draw gun information
     rendered = gameFont.render(str(player.activeWeapon.ammo)+"/"+str(player.activeWeapon.ownedAmmo), False, (255, 255, 255))
-    surface.blit(rendered, (width * 0.7, height * 0.85))
+    surface.blit(rendered, (width * 0.7 * PIXEL_SIZE, height * 0.85 * PIXEL_SIZE))
     rendered = gameFont.render(str(player.activeWeapon.name), False, (255, 255, 255))
-    surface.blit(rendered, (width * 0.7, height * 0.91))
+    surface.blit(rendered, (width * 0.7 * PIXEL_SIZE, height * 0.91 * PIXEL_SIZE))
 
 
-def drawPixel(surface, x, y, color, depthBuf, depth):
-    if depth > depthBuf[x][y]: return
-    draw.pixel(surface, x, y, color)
-    depthBuf[x][y] = depth
+def drawPixel(surface, x, y, color, depthBuf=False, depth=0):
+    if depthBuf:
+        if depth > depthBuf[x][y]: return
+        draw.box(surface, pg.Rect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE), color)
+        depthBuf[x][y] = depth
+    else:
+        draw.box(surface, pg.Rect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE), color)
 
 
 def drawLine(surface, start, end, thickness, color, depthBuf, depth):
@@ -157,9 +160,9 @@ def drawRect(surface, leftX, topY, width, height, color, depthBuf, depth, checkD
         for y in range(topY, topY + height):
             depthBuf[x][y] = depth
             if checkDepth and depth < depthBuf[x][y]:
-                draw.pixel(surface, x, y, color)
+                drawPixel(surface, x, y, color)
     if not checkDepth:
-        draw.box(surface, pg.Rect(leftX, topY, width, height), color)
+        draw.box(surface, pg.Rect(leftX * PIXEL_SIZE, topY * PIXEL_SIZE, width * PIXEL_SIZE, height * PIXEL_SIZE), color)
 
 
 
@@ -180,5 +183,6 @@ def drawMap(surface, width, height, mapArray, player, depthBuf):
                     color = (111, 111, 111) if vertical else (130, 130, 130) #wall
                 else:
                     color = (128, 30, 30) #floor
-                draw.pixel(surface, x, y, color)
+                drawPixel(surface, x, y, color)
+
 

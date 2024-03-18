@@ -16,14 +16,13 @@ from settings import *
 font.init()
 
 width, height = WINDOW_SIZE, WINDOW_SIZE * 3 // 4
-screen = pg.display.set_mode((width, height))
 pg.display.set_caption("Maze3D")
-surface = pg.display.set_mode((width, height))
+surface = pg.display.set_mode((width * PIXEL_SIZE, height * PIXEL_SIZE))
 
 mouse.set_visible(False)
 pg.event.set_grab(True)
 
-gameFont = font.Font(None, height // 10)
+gameFont = font.Font(None, height * PIXEL_SIZE // 10)
 
 
 mapArray = mapa.create(6, 6, ("......"
@@ -43,11 +42,11 @@ state = "running"
 while state:
     if state == "running":
         dTime = time.time() - lastFrame
-        #if dTime != 0: print(1 / dTime)  # uncomment to print fps into console
+        if dTime != 0: print(1 / dTime)  # uncomment to print fps into console
         lastFrame = time.time()
         dTime = min(dTime, 0.1)
         keys = key.get_pressed()
-        mouseMovement = mouse.get_rel()[0] * 400 / width
+        mouseMovement = mouse.get_rel()[0]# * 400 / width
 
         player.move(dTime, mouseMovement, keys, mapArray)
         player.activeWeapon.loop(player.activeWeapon, dTime)
