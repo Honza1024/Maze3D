@@ -77,7 +77,7 @@ def drawSprite(surface, width, height, midX, bottomY, scale, depthBuf, mask, dep
 
 
 def drawGui(surface, width, height, player, depthBuf):
-    scale = WINDOW_SIZE / 400
+    scale = WINDOW_RESOLUTION / 400
     # draw weapon
     player.activeWeapon.draw(surface, depthBuf, width, height)
     # draw health bar
@@ -92,9 +92,9 @@ def drawGui(surface, width, height, player, depthBuf):
 def drawText(surface, player, width, height, gameFont):
     # draw gun information
     rendered = gameFont.render(str(player.activeWeapon.ammo)+"/"+str(player.activeWeapon.ownedAmmo), False, (255, 255, 255))
-    surface.blit(rendered, (width * 0.7 * PIXEL_SIZE, height * 0.85 * PIXEL_SIZE))
+    surface.blit(rendered, (width * 0.65 * PIXEL_SIZE, height * 0.85 * PIXEL_SIZE))
     rendered = gameFont.render(str(player.activeWeapon.name), False, (255, 255, 255))
-    surface.blit(rendered, (width * 0.7 * PIXEL_SIZE, height * 0.91 * PIXEL_SIZE))
+    surface.blit(rendered, (width * 0.65 * PIXEL_SIZE, height * 0.91 * PIXEL_SIZE))
 
 
 def drawPixel(surface, x, y, color, depthBuf=False, depth=0):
@@ -143,7 +143,7 @@ def drawLine(surface, start, end, thickness, color, depthBuf, depth):
     drawPixel(surface, x2, y2, color, depthBuf, depth)
 
 
-def drawRect(surface, leftX, topY, width, height, color, depthBuf, depth, checkDepth=False, anchorPoint=(0,0)):
+def drawRect(surface, leftX, topY, width, height, color, depthBuf=False, depth=0, checkDepth=False, anchorPoint=(0,0)):
     leftX = int(leftX - (width * anchorPoint[0]))
     topY = int(topY - (height * anchorPoint[1]))
     width = int(width)
@@ -154,14 +154,17 @@ def drawRect(surface, leftX, topY, width, height, color, depthBuf, depth, checkD
     if topY < 0:
         height += topY
         topY = 0
-    width = min(width, WINDOW_SIZE - leftX)
-    height = min(height, int(WINDOW_SIZE * 3 / 4) - topY)
-    for x in range(leftX, leftX + width):
-        for y in range(topY, topY + height):
-            depthBuf[x][y] = depth
-            if checkDepth and depth < depthBuf[x][y]:
-                drawPixel(surface, x, y, color)
-    if not checkDepth:
+    width = min(width, WINDOW_RESOLUTION - leftX)
+    height = min(height, int(WINDOW_RESOLUTION * 3 / 4) - topY)
+    if depthBuf:
+        for x in range(leftX, leftX + width):
+            for y in range(topY, topY + height):
+                depthBuf[x][y] = depth
+                if checkDepth and depth < depthBuf[x][y]:
+                    drawPixel(surface, x, y, color)
+        if not checkDepth:
+            draw.box(surface, pg.Rect(leftX * PIXEL_SIZE, topY * PIXEL_SIZE, width * PIXEL_SIZE, height * PIXEL_SIZE), color)
+    else:
         draw.box(surface, pg.Rect(leftX * PIXEL_SIZE, topY * PIXEL_SIZE, width * PIXEL_SIZE, height * PIXEL_SIZE), color)
 
 

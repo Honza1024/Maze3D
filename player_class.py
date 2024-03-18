@@ -22,6 +22,7 @@ class Player:
             self.ownedWeapons.append(self.otherWeapons[0].getWeapon(name, self.otherWeapons))
         self.activeWeapon = self.ownedWeapons[0]
         self.health = health
+        self.score = 0
 
 
     def collide(self, mapArray):
@@ -101,8 +102,8 @@ class Player:
                 player.activeWeapon.damage(dTime, 0, distance, player.activeWeapon)
                 continue
             if self.noDeformation: distance *= math.cos(direction)
-            direction *= WINDOW_SIZE
-            size = len(object.sprite.mask[0]) * object.sprite.scale / distance
+            direction *= WINDOW_RESOLUTION
+            size = len(object.sprite.mask) * object.sprite.scale / distance / 2
             direct = 1 - abs(direction / (size / 2))
             if direction - (size / 2) < 0 < direction + (size / 2):  # got hit:
                 object.health -= player.activeWeapon.damage(dTime, direct, distance, player.activeWeapon)

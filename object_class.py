@@ -7,7 +7,7 @@ from settings import *
 
 class Object:
 
-    def __init__(self, typ, sprite, health=0, speed=0., damage=0, retreat=0):
+    def __init__(self, typ, sprite, health=0, speed=0., damage=0, retreat=0.):
         self.typ = typ
         self.pos = [0, 0]
         self.sprite = sprite
@@ -16,10 +16,10 @@ class Object:
         self.speed = speed
         self.damage = damage
         self.retreat = retreat
-        self.thickness = len(sprite.mask) * sprite.scale / WINDOW_SIZE / 2
+        self.thickness = len(sprite.mask) * sprite.scale / 1000
 
 
-    def move(self, dTime, player, mapArray):
+    def move(self, dTime, player, mapArray, objects):
         relX = self.pos[0] - player.position[0]
         relY = self.pos[1] - player.position[1]
         dist = math.sqrt(relX ** 2 + relY ** 2)
@@ -28,12 +28,27 @@ class Object:
         if self.typ in ["giant", "spider"]:  # go towards player
             self.pos[0] -= relX * self.speed * dTime
             self.pos[1] -= relY * self.speed * dTime
-        if self.typ in ["giant", "spider", "ammo", "weapon", "test"]:  # collision
-            self.collide(mapArray)
         if dist < player.thickness + self.thickness:  # attack
             player.health -= self.damage
             self.pos[0] += relX * self.speed * self.retreat
             self.pos[1] += relY * self.speed * self.retreat
+        for object in objects:  # collision with other objects
+            relX = self.pos[0] - object.pos[0]
+            relY = self.pos[1] - object.pos[1]
+            if object is self: continue
+            if abs(relX) > 1 or abs(relY) > 1: continue
+            if relX == 0: self.pos[0] += 0.0001
+            if relY == 0: self.pos[1] += 0.0001
+            dist = math.sqrt(relX ** 2 + relY ** 2)
+            if dist < self.thickness + object.thickness:
+                relX /= dist
+                relY /= dist
+                self.pos[0] += relX * (self.thickness + object.thickness - dist) / 2
+                self.pos[1] += relX * (self.thickness + object.thickness - dist) / 2
+                object.pos[0] -= relX * (self.thickness + object.thickness - dist) / 2
+                object.pos[1] -= relX * (self.thickness + object.thickness - dist) / 2
+        if self.typ in ["giant", "spider", "ammo", "weapon", "test"]:  # collision with walls
+            self.collide(mapArray)
 
     def collide(self, mapArray):
         # if inside a wall, get pushed away
@@ -162,7 +177,7 @@ objects["giant"] = Object("giant", draw.Sprite(getMask(22, """
 ......0000000000......
 ......0000000000......
 ......0000000000......
-......0000000000......"""), 1, 10, (255, 180, 180)), 1000, 0.4, 45, 0.3)
+......0000000000......"""), 1, 10, (255, 180, 180)), 1000, 0.4, 45, 0.8)
 
 objects["spider"] = Object("spider", draw.Sprite(getMask(20, """
 ......00000000......
