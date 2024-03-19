@@ -37,9 +37,10 @@ class Object:
             relY = self.pos[1] - object.pos[1]
             if object is self: continue
             if abs(relX) > 1 or abs(relY) > 1: continue
-            if relX == 0: self.pos[0] += 0.0001
-            if relY == 0: self.pos[1] += 0.0001
+            if relX == 0: self.pos[0] += 0.1
+            if relY == 0: self.pos[1] += 0.1
             dist = math.sqrt(relX ** 2 + relY ** 2)
+            if dist < 0.1: dist = 0.141
             if dist < self.thickness + object.thickness:
                 relX /= dist
                 relY /= dist
@@ -98,19 +99,27 @@ class Object:
             player.activeWeapon.getWeapon(self.weapon).ownedAmmo += self.ammo
             return True
         elif self.typ == "weapon":
-            player.ownedWeapons.append(player.activeWeapon.getWeapon(self.weapon, player.otherWeapons))
-            player.switchWeapons()
+            weapon = player.activeWeapon.getWeapon(self.weapon, player.otherWeapons)
+            if weapon:
+                player.ownedWeapons.insert(1, weapon)
+                player.switchWeapons()
+            return True
+        elif self.typ == "health":
+            player.health = min(player.health + self.weapon, player.maxHealth)
             return True
         return False
 
 
-def getObject(typ, pos, weapon="default", ammo=0, id=False):
+def getObject(typ, pos, weapon="default", ammo=0, id=False, offset=True):
     if typ in list(objects):
         o = copy.deepcopy(objects[typ])
     else:
         o = copy.deepcopy(objects[False])
-    o.pos = [pos[0] + 1, pos[1] + 1]
-    if typ in ["ammo", "weapon"]:
+    if offset:
+        o.pos = [pos[0] + 1, pos[1] + 1]
+    else:
+        o.pos = pos
+    if typ in ["ammo", "weapon", "health"]:
         o.weapon = weapon
     if typ == "ammo":
         o.ammo = ammo
@@ -210,6 +219,11 @@ objects["weapon"] = Object("weapon", draw.Sprite(getMask(20, """
 00000000000000000000
 00000000000000000000
 00000000000000000000"""), 1, 10, (80, 80, 80)), 0, 0)
+
+objects["health"] = Object("health", draw.Sprite(getMask(3, """
+.0.
+000
+.0."""), 1, 30, (0, 200, 0)), 0, 0)
 
 objects["target"] = Object("target", draw.Sprite(getMask(10, """
 ....00....

@@ -35,7 +35,7 @@ class Weapon:
 
 
     def getWeapon(self, name, set=False):
-        if set:
+        if isinstance(set, list):
             for weapon in set:
                 if weapon.name == name:
                     return set.pop(set.index(weapon))
@@ -99,6 +99,7 @@ def damageDefault(distance, direct, dTime, weapon):
     return 10
 
 Weapon("default", drawDefault, shootDefault, reloadDefault, loopDefault, damageDefault, 0, 6, 0.02)
+Weapon("hand gun", drawDefault, shootDefault, reloadDefault, loopDefault, damageDefault, 0, 6, 0.02)
 
 
 # rifle

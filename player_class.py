@@ -22,6 +22,7 @@ class Player:
             self.ownedWeapons.append(self.otherWeapons[0].getWeapon(name, self.otherWeapons))
         self.activeWeapon = self.ownedWeapons[0]
         self.health = health
+        self.maxHealth = health
         self.score = 0
 
 
@@ -83,9 +84,10 @@ class Player:
         self.collide(mapArray)
 
     def shoot(self, objects, mapArray, player, dTime):
+        dead = []
         # shoot
         shotValue = player.activeWeapon.shoot(player.activeWeapon)
-        if not shotValue: return
+        if not shotValue: return dead
         # loop through enemies and check for hits
         for object in objects:
             if object.maxHealth == 0:
@@ -109,7 +111,8 @@ class Player:
                 object.health -= player.activeWeapon.damage(dTime, direct, distance, player.activeWeapon)
                 player.activeWeapon.knockback(object, player)
             if object.health <= 0:  # dies
-                objects.pop(objects.index(object))
+                dead.append(objects.pop(objects.index(object)))
+        return dead
 
 
     def switchWeapons(self):

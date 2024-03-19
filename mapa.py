@@ -1,4 +1,5 @@
 import math
+import random
 
 
 def create(width, height, string):
@@ -93,3 +94,20 @@ def show(mapArray):
     for x in range(len(mapArray[0])):
         print("-", end = "")
 
+
+def getMap(name, width=32, height=32, wallRate=0.3):
+    if name == "survival":
+        string = ""
+        for _ in range(width * height):
+            if 14 < _ // 32 < 18 and 15 < _ % 32 < 19:
+                string += "."
+            else:
+                string += "w" if random.random() < 0.3 else "."
+        return create(width, height, string)
+    if name == "demo":
+        return create(6, 6, ("......"
+                             "......"
+                             "..w..."
+                             "......"
+                             "......"
+                             "......"))

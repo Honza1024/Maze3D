@@ -25,12 +25,8 @@ gameFont = font.Font(None, height * PIXEL_SIZE // 10)
 startMenu = menu.getMenu("start")
 pauseMenu = menu.getMenu("paused")
 
-mapArray = mapa.create(6, 6, ("......"
-                              "......"
-                              "..w..."
-                              "......"
-                              "......"
-                              "......"))
+mapArray = mapa.getMap(MODE)
+mapa.show(mapArray)
 
 game = gameplay.Gameplay()
 player, objects = game.player, game.objects
@@ -45,7 +41,7 @@ while state:
         dTime = time.time() - lastFrame
         #if dTime != 0: print(1 / dTime)  # uncomment to print fps into console
         lastFrame = time.time()
-        dTime = min(dTime, 0.1)
+        dTime = min(dTime, 0.3)
         keys = key.get_pressed()
         mouseMovement = mouse.get_rel()[0]
 
@@ -76,7 +72,7 @@ while state:
         elif event.type == pg.MOUSEBUTTONDOWN:
             if state == "running":
                 if event.button == 1:
-                    player.shoot(objects, mapArray, player, dTime)
+                    game.dead = player.shoot(objects, mapArray, player, dTime)
                 elif event.button == 3:
                     player.switchWeapons()
             elif state in ["start", "paused", "defeat"]:
