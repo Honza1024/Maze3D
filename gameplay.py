@@ -30,7 +30,6 @@ class Gameplay:
 
     def mainLoop(self, dTime, mapArray, state):
         self.gameTime += dTime
-        print(self.gameTime)
         if MODE == "survival":
             waveDuration = 30
             if self.phase == "wave":
